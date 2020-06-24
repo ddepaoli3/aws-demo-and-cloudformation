@@ -1,0 +1,97 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ALB and autoscaling
+Parameters:
+  VPCid:
+    Type: AWS::EC2::VPC::Id
+  SubnetAid:
+    Type: AWS::EC2::Subnet::Id
+  SubnetBid:
+    Type: AWS::EC2::Subnet::Id
+  Environment:
+    Type: String
+  Project:
+    Type: String
+
+Resources:
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${Project}-${Environment}-ALB
+      Tags:
+      - Key: Environment
+        Value: !Ref Environment
+      SecurityGroups:
+        - !Ref ApplicationLoadBalancerSecurityGroup
+      Subnets:
+        - !Ref SubnetAid
+        - !Ref SubnetBid
+  TargetGroupMain:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 5
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      Matcher:
+        HttpCode: 200-398
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPCid
+      Name: !Sub ${Project}-${Environment}-TG-main
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref Project
+  TargetGroupSecondary:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 5
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      Matcher:
+        HttpCode: 200-398
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPCid
+      Name: !Sub ${Project}-${Environment}-TG-second
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref Project
+  ListenersHTTP:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: '80'
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroupMain
+
+######################
+### security group
+  ApplicationLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP and HTTPS access
+      VpcId: !Ref VPCid
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '443'
+        ToPort: '443'
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Project
+        Value: !Ref Project
+      - Key: Environment
+        Value: !Ref Environment
