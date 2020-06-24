@@ -1,0 +1,34 @@
+[
+    {
+        "ParameterKey": "AccountName",
+        "ParameterValue": "xpeppers-test"
+    },
+    {
+        "ParameterKey": "Environment",
+        "ParameterValue": "test"
+    },
+    {
+        "ParameterKey": "Project",
+        "ParameterValue": "discoveryday"
+    },
+    {
+        "ParameterKey": "VpcCidr",
+        "ParameterValue": "10.0.0.0/20"
+    },
+    {
+        "ParameterKey": "PrivateSubnetCidrA",
+        "ParameterValue": "10.0.0.0/22"
+    },
+    {
+        "ParameterKey": "PrivateSubnetCidrB",
+        "ParameterValue": "10.0.4.0/22"
+    },
+    {
+        "ParameterKey": "PublicSubnetCidrA",
+        "ParameterValue": "10.0.8.0/22"
+    },
+    {
+        "ParameterKey": "PublicSubnetCidrB",
+        "ParameterValue": "10.0.12.0/22"
+    }
+]
