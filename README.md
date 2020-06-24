@@ -59,3 +59,4 @@ List of possible demo to show in different modules
 
 ## How to run
 `aws cloudformation create-stack --stack-name discoveryday-vpc --template-body file://vpc.yml --region eu-north-1  --parameters file://vpc-parameters.json`
+`aws cloudformation create-stack --profile xpeppers-test --stack-name discoveryday-autoscaling --template-body file://autoscaling.yml --region eu-north-1  --parameters file://autoscaling-parameters.json --capabilities CAPABILITY_IAM`

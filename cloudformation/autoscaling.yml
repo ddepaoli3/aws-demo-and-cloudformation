@@ -1,0 +1,216 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Simple autoscaling template
+Parameters:
+  VPCid:
+    Type: AWS::EC2::VPC::Id
+  SubnetAid:
+    Type: AWS::EC2::Subnet::Id
+  SubnetBid:
+    Type: AWS::EC2::Subnet::Id 
+  Environment:
+    Type: String
+  Project:
+    Type: String
+  LinuxDistro:
+    Description: Linux Distro Family name
+    Type: String
+    AllowedValues:
+      - ubuntu2004
+      - centos8
+  EC2InstanceName:
+    Type: String
+  EC2InstanceType:
+    Description: EC2 instance type
+    Type: String
+    ConstraintDescription: must be a valid EC2 instance type.
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+Mappings: 
+  AMImapping: 
+    eu-central-1:
+      ubuntu2004: ami-0b90a8636b6f955c1
+      centos8: ami-032025b3afcbb6b34
+    eu-north-1:
+      ubuntu2004: ami-0fc9ebfbb0c0f3571
+      centos8: ami-0474ce84d449ee66f
+    eu-south-1:
+      ubuntu2004: ami-01e1b40fc7edcd047
+      centos8: ami-00fd0c9036a37a48e
+    eu-west-1:
+      ubuntu2004: ami-099926fbf83aa61ed
+      centos8: ami-0bfa4fefe067b7946
+    eu-west-2:
+      ubuntu2004: ami-0ffac660dd0cb2973
+      centos8: ami-0eee2548cd75b4877
+    eu-west-3:
+      ubuntu2004: ami-013ae7c08b0ad5b2c
+      centos8: ami-05786aa5add3ca7c8
+    us-east-1:
+      ubuntu2004: ami-02ae530dacc099fc9
+      centos8: ami-01ca03df4a6012157
+    us-east-2:
+      ubuntu2004: ami-013de1b045799b282
+      centos8: ami-000e7ce4dd68e7a11
+    us-west-1:
+      ubuntu2004: ami-036e9fc1037b68e21
+      centos8: ami-04179d30492b778ad
+    us-west-2:
+      ubuntu2004: ami-005e54dee72cc1d00
+      centos8: ami-0157b1e4eefd91fd7
+
+Resources:
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - !Ref IAMRole
+  IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: metrics
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - cloudwatch:PutMetricData
+            - cloudwatch:GetMetricStatistics
+            - cloudwatch:ListMetrics
+            Resource:
+            - '*'
+      - PolicyName: associateEIP
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ec2:AssociateAddress
+            - ec2:Describe*
+            Resource: "*"
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${Project}-${Environment}-${EC2InstanceName}
+        PropagateAtLaunch: 'true'
+      - Key: Environment
+        Value: !Ref Environment
+        PropagateAtLaunch: 'true'
+      - Key: Project
+        Value: !Ref Project
+        PropagateAtLaunch: 'true'
+      LaunchConfigurationName:
+        !Ref LaunchConfiguration
+      MinSize: 1
+      MaxSize: 4
+      VPCZoneIdentifier:
+        - !Ref SubnetAid
+        - !Ref SubnetBid
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      IamInstanceProfile: !Ref InstanceProfile
+      KeyName: !Ref KeyName
+      ImageId: !FindInMap [AMImapping, !Ref "AWS::Region", !Ref LinuxDistro]
+      SecurityGroups:
+        - !Ref CustomSecurityGroup
+        - !Ref SSHSecurityGroup
+      InstanceType: !Ref EC2InstanceType
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -x
+            # Puth here your bash init script
+
+  CustomSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCid
+      GroupDescription: Add here custom rules
+      SecurityGroupIngress:
+      - IpProtocol: "tcp"
+        FromPort: "80"
+        ToPort: "80"
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: "tcp"
+        FromPort: "443"
+        ToPort: "443"
+        CidrIp: 0.0.0.0/0
+  SSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCid
+      GroupDescription: Enable SSH access
+      SecurityGroupIngress:
+      - IpProtocol: "tcp"
+        FromPort: "22"
+        ToPort: "22"
+        CidrIp: 0.0.0.0/0
+
+#####################
+### CPU base scaling policy
+  EC2CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${Project}-${Environment}-${EC2InstanceName}-High-CPU
+      EvaluationPeriods: 1
+      Statistic: Average
+      Threshold: 60
+      AlarmDescription: Alarm if average of CPU utilization is too high
+      Period: 60
+      AlarmActions:
+      - !Ref CPUScaleOutPolicy
+      Namespace: AWS/EC2
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value: !Ref AutoScalingGroup
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: CPUUtilization
+  EC2CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${Project}-${Environment}-autoscaling-${EC2InstanceName}-Low-CPU
+      EvaluationPeriods: 1
+      Statistic: Average
+      Threshold: 20
+      AlarmDescription: Alarm if average of CPU utilization is too low
+      Period: 60
+      AlarmActions:
+      - !Ref CPUScaleInPolicy
+      Namespace: AWS/EC2
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value: !Ref AutoScalingGroup
+      ComparisonOperator: LessThanThreshold
+      MetricName: CPUUtilization
+  CPUScaleOutPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      Cooldown: 30
+      ScalingAdjustment: '1'
+  CPUScaleInPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      Cooldown: 30
+      ScalingAdjustment: '-1'
