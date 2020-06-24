@@ -1,0 +1,22 @@
+[
+    {
+        "ParameterKey": "Project",
+        "ParameterValue": "discoveryday"
+    },
+    {
+        "ParameterKey": "Environment",
+        "ParameterValue": "test"
+    },
+    {
+        "ParameterKey": "VPCid",
+        "ParameterValue": "vpc-0428595325d38020e"
+    },
+    {
+        "ParameterKey": "SubnetAid",
+        "ParameterValue": "subnet-0f9d9f06c3b7f0f57"
+    },
+    {
+        "ParameterKey": "SubnetBid",
+        "ParameterValue": "subnet-0eb24da6862875cca"
+    }
+]

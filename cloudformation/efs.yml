@@ -1,0 +1,62 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Elastic File System (NFS)'
+Parameters:
+
+#Common parameters
+  Project:
+    Type: String
+  Environment:
+    Type: String
+  VPCid:
+    Type: AWS::EC2::VPC::Id
+  SubnetAid:
+    Type: AWS::EC2::Subnet::Id
+  SubnetBid:
+    Type: AWS::EC2::Subnet::Id 
+
+Resources:
+  ElasticFileSystem:
+    Type: "AWS::EFS::FileSystem"
+    DeletionPolicy: Retain
+    Properties:
+      FileSystemTags:
+        -
+          Key: "Name"
+          Value:
+            Fn::Join:
+              - "-"
+              - - !Ref Project
+                - nfs
+                - !Ref Environment
+  MountTargetA:
+    Type: "AWS::EFS::MountTarget"
+    DeletionPolicy: Retain
+    Properties:
+      FileSystemId: !Ref ElasticFileSystem
+      SubnetId: !Ref SubnetAid
+      SecurityGroups:
+        - !Ref ElasticFileSystemSecurityGroup
+  MountTargetB:
+    Type: "AWS::EFS::MountTarget"
+    DeletionPolicy: Retain
+    Properties:
+      FileSystemId: !Ref ElasticFileSystem
+      SubnetId: !Ref SubnetBid
+      SecurityGroups:
+        - !Ref ElasticFileSystemSecurityGroup
+  ElasticFileSystemSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DeletionPolicy: Retain
+    Properties:
+      VpcId: !Ref VPCid
+      GroupDescription: Security group for elastic file system
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '2049'
+        ToPort: '2049'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '2049'
+        ToPort: '2049'
+        CidrIp: 0.0.0.0/0
