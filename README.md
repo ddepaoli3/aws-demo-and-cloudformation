@@ -18,19 +18,19 @@ List of possible demo to show in different modules
 
 ## Module 2
 * Autoscaling demo
+    * CPU overload
 * Load Balancer demo
     * balancing
     * https certificate
     * target group with different path/domain
-* Autoscaling con CPU overload
-* Lambda
-    * creation
-    * event put object S3
 * S3
     * Bucket creation
     * Uploading files
     * Advanced configuration
     * Web hosting mode on S3
+* Lambda
+    * creation
+    * event put object S3
 * EBS
     * EBS creation
     * EC2 attacchment
@@ -52,11 +52,34 @@ List of possible demo to show in different modules
 
 ## Module 3
 * IAM
-* KMS
-* Secret Manager
 
 # Cloudformation
 
 ## How to run
 `aws cloudformation create-stack --stack-name discoveryday-vpc --template-body file://vpc.yml --region eu-north-1  --parameters file://vpc-parameters.json`
-`aws cloudformation create-stack --profile xpeppers-test --stack-name discoveryday-autoscaling --template-body file://autoscaling.yml --region eu-north-1  --parameters file://autoscaling-parameters.json --capabilities CAPABILITY_IAM`
+
+`aws cloudformation create-stack --stack-name discoveryday-autoscaling --template-body file://autoscaling.yml --region eu-north-1  --parameters file://autoscaling-parameters.json --capabilities CAPABILITY_IAM`
+
+`aws cloudformation create-stack --stack-name discoveryday-efs --template-body file://efs.yml --region eu-north-1  --parameters file://efs-parameters.json`
+
+# Note
+
+## Bucket policy web hosting
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::example.com/*"
+            ]
+        }
+    ]
+}
+```
