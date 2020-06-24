@@ -1,51 +1,56 @@
 README
 ======
+This repository is used as guide and reference for AWS discovery day (June 2020).
 
-# Module 1
+
+# Demo
+List of possible demo to show in different modules
+
+## Module 1
 * Demo console:
-    * console in generale
-    * istanze EC2 scalabili
-    * prezzi on demand
-    * elasticità EC2
-    * networking: vpn e servizi import da onprem
-* Infrastruttura globlae
-    * analisi interfaccia [infrastructure.aws](http://infrastructure.aws/)
+    * AWS console
+    * EC2 scalable instances
+    * on demand prices
+    * EC2 elasticity
+    * networking: vpn and from onprem import services
+* Global infrastructure
+    * view global infrastructure with [infrastructure.aws](http://infrastructure.aws/)
 
-# Module 2
+## Module 2
 * Autoscaling demo
 * Load Balancer demo
     * balancing
     * https certificate
-    * target group different path/domain
+    * target group with different path/domain
 * Autoscaling con CPU overload
 * Lambda
     * creation
     * event put object S3
 * S3
-    * Creazione bucket
-    * Caricamento files
-    * Configurazioni avanzate
-    * S3 in web hosting mode
+    * Bucket creation
+    * Uploading files
+    * Advanced configuration
+    * Web hosting mode on S3
 * EBS
-    * creazione EBS
+    * EBS creation
     * EC2 attacchment
-    * use in EC2
+    * use EBS on EC2
     * Snapshot
 * EFS
-    * creazione
+    * creation
     * EC2 mount
 * RDS
-    * creazione
-    * connessione a RDS
+    * creation
+    * connection to RDS
 * Dynamodb
-    * creazione tabella
-    * popolamento tabella
+    * tables creation
+    * inserting data into dynamodb
 * Networking
     * VPC
     * Route53
     * Cloudfront
 
-# Module 3
+## Module 3
 * IAM
 * KMS
 * Secret Manager
