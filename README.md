@@ -54,3 +54,8 @@ List of possible demo to show in different modules
 * IAM
 * KMS
 * Secret Manager
+
+# Cloudformation
+
+## How to run
+`aws cloudformation create-stack --stack-name discoveryday-vpc --template-body file://vpc.yml --region eu-north-1  --parameters file://vpc-parameters.json`
