@@ -103,6 +103,8 @@ Resources:
             - ec2:AssociateAddress
             - ec2:Describe*
             Resource: "*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
