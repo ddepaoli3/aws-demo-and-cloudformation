@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description:  RDS
+Parameters:
+  VPCid:
+    Type: AWS::EC2::VPC::Id
+  SubnetAid:
+    Type: AWS::EC2::Subnet::Id
+  SubnetBid:
+    Type: AWS::EC2::Subnet::Id 
+  Environment:
+    Type: String
+  Project:
+    Type: String
+  RDSServerInstanceType:
+    Description: The instance type of database server (e.g. db.t2.micro).
+    Type: String
+    Default: db.t3.small
+  RDSUsername:
+    Description: RDS db username.
+    Type: String
+  RDSPassword:
+    NoEcho: true
+    Description: RDS db password.
+    Type: String
+  RDSAllocatedStorage:
+    Description: RDS AllocatedStorage size, specified in gigabytes (GB).
+    Type: String
+  RDSEngine:
+    Type: String
+    AllowedValues:
+    - aurora
+    - mariadb
+    - mysql
+    - oracle-ee
+    - oracle-se2
+    - oracle-se1
+    - oracle-se
+    - postgres
+    - sqlserver-ee
+    - sqlserver-se
+    - sqlserver-ex
+    - sqlserver-web
+  RDSEngineVersion:
+    Type: String
+  RDSParameterGroupFamily:
+    Type: String
+    AllowedValues:
+    - aurora-postgresql9.6
+    - mariadb10.0
+    - mariadb10.1
+    - mysql5.5
+    - mysql5.6
+    - mysql5.7
+    - oracle-ee-11.2
+    - oracle-ee-12.1
+    - oracle-se-11.2
+    - oracle-se1-11.2
+    - oracle-se2-12.1
+    - aurora5.6
+    - postgres9.3
+    - postgres9.4
+    - postgres9.5
+    - postgres9.6
+    - sqlserver-ee-10.5
+    - sqlserver-ee-11.0
+    - sqlserver-ee-12.0
+    - sqlserver-ee-13.0
+    - sqlserver-ex-10.5
+    - sqlserver-ex-11.0
+    - sqlserver-ex-12.0
+    - sqlserver-ex-13.0
+    - sqlserver-se-10.5
+    - sqlserver-se-11.0
+    - sqlserver-se-12.0
+    - sqlserver-se-13.0
+    - sqlserver-web-10.5
+    - sqlserver-web-11.0
+    - sqlserver-web-12.0
+    - sqlserver-web-13.0
+
+Resources:
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription:
+        !Join
+          - "-"
+          - - !Ref Project
+            - !Ref Environment
+            - RDSSecurityGroup
+      VpcId: !Ref VPCid
+      SecurityGroupIngress:
+      - IpProtocol: 'tcp'
+        FromPort: '3306'      
+        ToPort: '3306'
+        CidrIp: 0.0.0.0/0
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: DB subnet group
+      SubnetIds:
+        - !Ref SubnetAid
+        - !Ref SubnetBid
+  Database:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      PubliclyAccessible: false
+      AllocatedStorage:
+        !Ref RDSAllocatedStorage
+      BackupRetentionPeriod: 0
+      DBInstanceClass: !Ref RDSServerInstanceType
+      DBInstanceIdentifier: !Sub ${Project}-${Environment}-rds
+      Engine: !Ref RDSEngine
+      EngineVersion: !Ref RDSEngineVersion
+      DBParameterGroupName: !Ref RDSDBParameterGroup
+      MasterUsername: !Ref RDSUsername
+      MasterUserPassword: !Ref RDSPassword
+      VPCSecurityGroups:
+      - Fn::GetAtt:
+        - DatabaseSecurityGroup
+        - GroupId
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      MultiAZ: false
+      StorageType: gp2
+      Tags:
+      - Key: Name
+        Value: !Sub ${Project}-${Environment}-rds
+      - Key: Project
+        Value: !Ref Project
+      - Key: Environment
+        Value: !Ref Environment
+
+###ParameterGroup
+  RDSDBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Custom parameters group
+      Family: !Ref RDSParameterGroupFamily
+      Parameters:
+        time_zone: "Europe/Paris"
+
+Outputs:
+  RDS:
+    Value:
+      !GetAtt Database.Endpoint.Address

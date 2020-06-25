@@ -1,0 +1,50 @@
+[
+    {
+        "ParameterKey": "VPCid",
+        "ParameterValue": "vpc-0428595325d38020e"
+    },
+    {
+        "ParameterKey": "SubnetAid",
+        "ParameterValue": "subnet-0f9d9f06c3b7f0f57"
+    },
+    {
+        "ParameterKey": "SubnetBid",
+        "ParameterValue": "subnet-0eb24da6862875cca"
+    },
+    {
+        "ParameterKey": "Environment",
+        "ParameterValue": "test"
+    },
+    {
+        "ParameterKey": "Project",
+        "ParameterValue": "discoveryday"
+    },
+    {
+        "ParameterKey": "RDSServerInstanceType",
+        "ParameterValue": "db.t3.small"
+    },
+    {
+        "ParameterKey": "RDSUsername",
+        "ParameterValue": "admin"
+    },
+    {
+        "ParameterKey": "RDSPassword",
+        "ParameterValue": "justatestpassword"
+    },
+    {
+        "ParameterKey": "RDSAllocatedStorage",
+        "ParameterValue": "20"
+    },
+    {
+        "ParameterKey": "RDSEngine",
+        "ParameterValue": "mysql"
+    },
+    {
+        "ParameterKey": "RDSEngineVersion",
+        "ParameterValue": "5.7.30"
+    },
+    {
+        "ParameterKey": "RDSParameterGroupFamily",
+        "ParameterValue": "mysql5.7"
+    }
+]
