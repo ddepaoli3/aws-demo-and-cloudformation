@@ -12,13 +12,15 @@ List of possible demo to show in different modules
     * EC2 scalable instances
     * on demand prices
     * EC2 elasticity
-    * networking: vpn and from onprem import services
+    * networking
+    * storage gateway
 * Global infrastructure
     * view global infrastructure with [infrastructure.aws](http://infrastructure.aws/)
 
 ## Module 2
 * Autoscaling demo
     * CPU overload
+* System manager run command
 * Load Balancer demo
     * balancing
     * https certificate
@@ -82,4 +84,10 @@ List of possible demo to show in different modules
         }
     ]
 }
+```
+
+## Command to run in ec2 with System Manager
+```
+sudo apt update
+sudo apt install stress apache2 --yes
 ```
