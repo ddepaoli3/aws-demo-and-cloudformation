@@ -34,5 +34,9 @@
     {
         "ParameterKey": "KeyName",
         "ParameterValue": "daniel.depaoli"
+    },
+    {
+        "ParameterKey": "TargetGroupArn",
+        "ParameterValue": "arn:aws:elasticloadbalancing:eu-north-1:831650818513:targetgroup/sample-test-TG-main/4606fa4c9f16a4b3"
     }
 ]

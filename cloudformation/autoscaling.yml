@@ -27,7 +27,15 @@ Parameters:
   KeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
-    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+    ConstraintDescription: must be the name of an existing EC2 KeyPair
+  TargetGroupArn:
+    Description: ARN of the target group to which attach the autoscaling
+    Type: String
+    Default: ""
+
+Conditions:
+  AttachToTargetGroup:
+    !Not [!Equals [!Ref TargetGroupArn, '']]
 
 Mappings: 
   AMImapping: 
@@ -125,6 +133,12 @@ Resources:
       VPCZoneIdentifier:
         - !Ref SubnetAid
         - !Ref SubnetBid
+      TargetGroupARNs:
+        - !If
+            - AttachToTargetGroup
+            - !Ref TargetGroupArn
+            - !Ref AWS::NoValue
+
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
