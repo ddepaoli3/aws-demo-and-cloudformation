@@ -12,6 +12,16 @@ Parameters:
     Type: String
   Project:
     Type: String
+  StickySession:
+    Description: enable or disable sticky session on target group
+    Type: String
+    Default: "no"
+    AllowedValues:
+      - "yes"
+      - "no"
+
+Conditions:
+  EnableStickySession: !Equals [!Ref StickySession, 'yes']
 
 Resources:
   ApplicationLoadBalancer:
@@ -26,6 +36,7 @@ Resources:
       Subnets:
         - !Ref SubnetAid
         - !Ref SubnetBid
+
   TargetGroupMain:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
@@ -45,6 +56,9 @@ Resources:
           Value: !Ref Environment
         - Key: Project
           Value: !Ref Project
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: !If [EnableStickySession, true, false]
   TargetGroupSecondary:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
@@ -64,6 +78,9 @@ Resources:
           Value: !Ref Environment
         - Key: Project
           Value: !Ref Project
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: !If [EnableStickySession, true, false]
   ListenersHTTP:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
