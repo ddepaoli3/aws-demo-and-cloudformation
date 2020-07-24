@@ -154,6 +154,23 @@ Resources:
           !Sub |
             #!/bin/bash -x
             # Puth here your bash init script
+            os=${LinuxDistro}
+            IP=`curl 169.254.169.254/latest/meta-data/local-ipv4`
+            if [[ $os == "ubuntu2004" ]]
+            then
+              apt-get 
+              apt-get install --yes nginx
+              sed -i s/'Welcome to nginx'/"Welcome you are on instance $IP"/ /var/www/html/index.nginx-debian.html
+            elif [[ $os == "centos8" ]]
+            then
+              yum update
+              yum install -y nginx
+              service nginx start
+              sed -i s/'on Red Hat Enterprise Linux'/"on instance $IP"/ /usr/share/nginx/html/index.html
+            else
+              echo "OS not found"
+            fi
+
 
   CustomSecurityGroup:
     Type: AWS::EC2::SecurityGroup
