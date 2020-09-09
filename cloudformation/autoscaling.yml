@@ -207,7 +207,7 @@ Resources:
       Statistic: Average
       Threshold: 60
       AlarmDescription: Alarm if average of CPU utilization is too high
-      Period: 60
+      Period: 300
       AlarmActions:
       - !Ref CPUScaleOutPolicy
       Namespace: AWS/EC2
@@ -224,7 +224,7 @@ Resources:
       Statistic: Average
       Threshold: 20
       AlarmDescription: Alarm if average of CPU utilization is too low
-      Period: 60
+      Period: 300
       AlarmActions:
       - !Ref CPUScaleInPolicy
       Namespace: AWS/EC2
