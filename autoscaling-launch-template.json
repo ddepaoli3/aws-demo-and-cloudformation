@@ -1,0 +1,49 @@
+[{
+        "ParameterKey": "VPCid",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "SubnetAid",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "SubnetBid",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "Environment",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "Project",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "KeyName",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "AutoscalingMinSize",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "AutoscalingMaxSize",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "AutoscalingDesiredSize",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "InstanceType",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "InstanceName",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "InstanceAMI",
+        "ParameterValue": ""
+    }
+]

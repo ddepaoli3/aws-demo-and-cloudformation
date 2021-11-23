@@ -1,0 +1,184 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Autoscaling with launch template
+Parameters:
+
+#Common parameters
+  VPCid:
+    Type: AWS::EC2::VPC::Id
+  SubnetAid:
+    Type: AWS::EC2::Subnet::Id
+  SubnetBid:
+    Type: AWS::EC2::Subnet::Id 
+  Environment:
+    Type: String
+  Project:
+    Type: String
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+  AutoscalingMinSize:
+    Type: Number
+    Default: 1
+  AutoscalingMaxSize:
+    Type: Number
+    Default: 1
+  AutoscalingDesiredSize:
+    Type: Number
+    Default: 1
+  InstanceType:
+    Type: String
+  InstanceName:
+    Type: String
+  InstanceAMI:
+    Type: AWS::EC2::Image::Id
+    Description: AMI id for instance
+
+Resources:
+######################
+### Instance profile
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - !Ref InstanceIAMRole
+  InstanceIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: logs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            - logs:DescribeLogStreams
+            Resource:
+            - arn:aws:logs:*:*:*
+      - PolicyName: metrics
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - cloudwatch:PutMetricData
+            - cloudwatch:GetMetricStatistics
+            - cloudwatch:ListMetrics
+            Resource:
+            - '*'
+      #SSM policy
+      - PolicyName: ssmPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ssm:UpdateInstanceInformation
+            - ssm:ListAssociations
+            - ssm:ListInstanceAssociations
+            - ssmmessages:CreateControlChannel
+            - ssmmessages:CreateDataChannel
+            - ssmmessages:OpenControlChannel
+            - ssmmessages:OpenDataChannel
+            - ec2messages:AcknowledgeMessage
+            - ec2messages:DeleteMessage
+            - ec2messages:FailMessage
+            - ec2messages:GetEndpoint
+            - ec2messages:GetMessages
+            - ec2messages:SendReply
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - ds:CreateComputer
+            - ds:DescribeDirectories
+            - ssm:DescribeAssociation
+            - ssm:GetDeployablePatchSnapshotForInstance
+            - ssm:GetDocument
+            - ssm:DescribeDocument
+            - ssm:GetManifest
+            - ssm:PutInventory
+            - ssm:PutComplianceItems
+            - ssm:PutConfigurePackageResult
+            - ssm:UpdateAssociationStatus
+            - ssm:UpdateInstanceAssociationStatus
+            - ec2:DescribeInstanceStatus
+            Resource:
+            - '*'
+
+######################
+### Autoscaling
+  AutoscalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub ${InstanceName}-autoscaling-${Environment}
+      Tags:
+      - Key: Name
+        Value: !Sub ${InstanceName}-${Environment}
+        PropagateAtLaunch: 'true'
+      - Key: Environment
+        Value: !Ref Environment
+        PropagateAtLaunch: 'true'
+      - Key: Project
+        Value: !Ref Project
+        PropagateAtLaunch: 'true'
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplateGitlabRunner
+        Version: !GetAtt LaunchTemplateGitlabRunner.LatestVersionNumber
+      MinSize: !Ref AutoscalingMinSize
+      MaxSize: !Ref AutoscalingMaxSize
+      DesiredCapacity: !Ref AutoscalingDesiredSize
+      TerminationPolicies:
+        - OldestInstance
+      VPCZoneIdentifier:
+        - !Ref SubnetAid
+        - !Ref SubnetBid
+
+  LaunchTemplateGitlabRunner:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub ${InstanceName}-launch-template-${Environment}
+      LaunchTemplateData: 
+        UserData:
+          Fn::Base64:
+            !Sub |
+              #!/bin/bash -x
+              echo "I am an EC2 created with autoscaling launch template"
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+        ImageId: !Ref InstanceAMI
+        IamInstanceProfile:
+          Name: !Ref InstanceProfile
+        SecurityGroupIds:
+        - !GetAtt InstanceSecurityGroup.GroupId
+      
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCid
+      GroupDescription: Enable SSH access and HTTP
+      SecurityGroupIngress:
+      - IpProtocol: "tcp"
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: "tcp"
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
